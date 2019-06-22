@@ -1,0 +1,162 @@
+#lang racket
+(define (Depth queue max num)
+  (cond
+    ((null? queue) #f)
+    ((ListSame? (car queue) max) num)
+    ((Overload? (car queue)) (Depth (cdr queue) max (+ 1 num)))
+    (else (Depth (FrontAddChildren (cdr queue) (car queue) 0) max (+ 1 num)))
+    )
+  )
+
+(define (Breath queue max num)
+  (cond
+    ((null? queue) #f)
+    ((ListSame? (car queue) max) num)
+    ((Overload? (car queue)) (Breath (cdr queue) max (+ 1 num)))
+    (else (Breath (BackAddChildren (cdr queue) (car queue) 0) max (+ 1 num)))
+    )
+  )
+
+(define (Iterative max queue num iter allowed)
+  (if (> allowed iter)
+      (cond
+        ((null? queue) #f)
+        ((ListSame? (car queue) max) num)
+        ((Overload? (car queue)) (Iterative (cdr queue) max (+ 1 num) iter allowed))
+        ;()
+        (else (Iterative (FrontAddChildren (cdr queue) (car queue) 0) max (+ 1 num) (+ 1 iter) allowed))
+        )
+      #f)
+  )
+
+; to check if the current load is same with the maximum load
+(define (LoadSame? x y index)
+  (cond
+    ((eq? index 3) #t)
+    ((not (eq? (car x) (car y))) #f)
+    (else (LoadSame? (cdr x) (cdr y) (+ 1 index)))
+    )
+  )
+
+; to compare the loaded amount
+(define (LoadBigger? x y index)
+  (cond
+    ((eq? index 3) #t)
+    ((< (car x) (car y)) #f)
+    (else (LoadBigger? (cdr x) (cdr y) (+ 1 index)))
+    )
+  )
+
+; to check the capacity is enough to load more
+(define (CapacityRemain? x y index)
+  (cond
+    ((eq? index 6) #t)
+    ((and (> index 2) (< (car x) (car y))) #f)
+    (else (CapacityRemain? (cdr x) (cdr y) (+ 1 index)))
+    )
+  )
+
+; to check overload
+(define (Overload? x)
+  (cond
+    ((LoadBigger? x '(60 0 0 -1 -1 -1 -1) 0) #t)
+    ((LoadBigger? x '(0 48 0 -1 -1 -1 -1) 0) #t)
+    ((LoadBigger? x '(0 0 32 -1 -1 -1 -1) 0) #t)
+    (else #f)
+    )
+  )
+
+; add i in front of queue
+(define (FrontAdd queue i)
+  (append i queue)
+  )
+
+; add i in back of queue
+(define (BackAdd queue i)
+  (append queue i)
+  )
+
+; add the each elements in two lists
+(define (ListAdd x y)
+  (map (lambda (x_element y_element)
+       (+ x_element y_element))
+       x y)
+  )
+
+; add 27 children in front of the queue
+(define (FrontAddChildren queue current child)
+  (cond
+    ((and (CapacityRemain? current '(0 0 0 0 0 3 -1) 0) (eq? child 0)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(4 4 4 0 0 -3 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 0 3 0 -1) 0) (eq? child 1)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(3 3 3 0 -3 0 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 3 0 0 -1) 0) (eq? child 2)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(2 2 2 -3 0 0 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 0 1 2 -1) 0) (eq? child 3)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(4 4 3 0 -1 -2 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 0 2 -1) 0) (eq? child 4)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(4 4 2 -1 0 -2 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 0 1 2 -1) 0) (eq? child 5)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(4 3 4 0 -1 -2 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 0 2 -1) 0) (eq? child 6)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(4 2 4 -1 0 -2 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 0 1 2 -1) 0) (eq? child 7)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(3 4 4 0 -1 -2 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 0 2 -1) 0) (eq? child 8)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(2 4 4 -1 0 -2 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 0 2 1 -1) 0) (eq? child 9)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(3 3 4 0 -2 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 2 0 -1) 0) (eq? child 10)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(3 3 2 -1 -2 0 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 0 2 1 -1) 0) (eq? child 11)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(3 4 3 0 -2 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 2 0 -1) 0) (eq? child 12)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(3 2 3 -1 -2 0 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 0 2 1 -1) 0) (eq? child 13)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(4 3 3 0 -2 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 0 2 -1) 0) (eq? child 14)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(2 4 4 -1 0 -2 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 2 0 1 -1) 0) (eq? child 15)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(2 2 4 -2 0 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 2 1 0 -1) 0) (eq? child 16)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(2 2 3 -2 -1 0 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 2 0 1 -1) 0) (eq? child 17)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(2 4 2 -2 0 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 2 1 0 -1) 0) (eq? child 18)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(2 3 2 -2 -1 0 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 2 0 1 -1) 0) (eq? child 19)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(4 2 2 -2 0 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 2 1 0 -1) 0) (eq? child 20)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(3 2 2 -2 -1 0 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 1 1 -1) 0) (eq? child 21)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(4 3 2 -1 -1 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 1 1 -1) 0) (eq? child 22)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(4 2 3 -1 -1 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 1 1 -1) 0) (eq? child 23)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(3 4 2 -1 -1 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 1 1 -1) 0) (eq? child 24)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(2 4 3 -1 -1 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 1 1 -1) 0) (eq? child 25)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(3 2 3 -1 -1 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 1 1 -1) 0) (eq? child 26)) (FrontAddChildren (FrontAdd queue (list(ListAdd current '(2 3 4 -1 -1 -1 1)))) current (+ 1 child)))
+    ((eq? child 27) queue)
+    (else (FrontAddChildren queue current (+ 1 child)))
+    )
+  )
+
+; add 27 children in back of the queue
+(define (BackAddChildren queue current child)
+  (cond
+    ((and (CapacityRemain? current '(0 0 0 0 0 3 -1) 0) (eq? child 0)) (BackAddChildren (BackAdd queue (list(ListAdd current '(4 4 4 0 0 -3 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 0 3 0 -1) 0) (eq? child 1)) (BackAddChildren (BackAdd queue (list(ListAdd current '(3 3 3 0 -3 0 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 3 0 0 -1) 0) (eq? child 2)) (BackAddChildren (BackAdd queue (list(ListAdd current '(2 2 2 -3 0 0 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 0 1 2 -1) 0) (eq? child 3)) (BackAddChildren (BackAdd queue (list(ListAdd current '(4 4 3 0 -1 -2 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 0 2 -1) 0) (eq? child 4)) (BackAddChildren (BackAdd queue (list(ListAdd current '(4 4 2 -1 0 -2 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 0 1 2 -1) 0) (eq? child 5)) (BackAddChildren (BackAdd queue (list(ListAdd current '(4 3 4 0 -1 -2 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 0 2 -1) 0) (eq? child 6)) (BackAddChildren (BackAdd queue (list(ListAdd current '(4 2 4 -1 0 -2 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 0 1 2 -1) 0) (eq? child 7)) (BackAddChildren (BackAdd queue (list(ListAdd current '(3 4 4 0 -1 -2 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 0 2 -1) 0) (eq? child 8)) (BackAddChildren (BackAdd queue (list(ListAdd current '(2 4 4 -1 0 -2 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 0 2 1 -1) 0) (eq? child 9)) (BackAddChildren (BackAdd queue (list(ListAdd current '(3 3 4 0 -2 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 2 0 -1) 0) (eq? child 10)) (BackAddChildren (BackAdd queue (list(ListAdd current '(3 3 2 -1 -2 0 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 0 2 1 -1) 0) (eq? child 11)) (BackAddChildren (BackAdd queue (list(ListAdd current '(3 4 3 0 -2 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 2 0 -1) 0) (eq? child 12)) (BackAddChildren (BackAdd queue (list(ListAdd current '(3 2 3 -1 -2 0 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 0 2 1 -1) 0) (eq? child 13)) (BackAddChildren (BackAdd queue (list(ListAdd current '(4 3 3 0 -2 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 0 2 -1) 0) (eq? child 14)) (BackAddChildren (BackAdd queue (list(ListAdd current '(2 4 4 -1 0 -2 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 2 0 1 -1) 0) (eq? child 15)) (BackAddChildren (BackAdd queue (list(ListAdd current '(2 2 4 -2 0 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 2 1 0 -1) 0) (eq? child 16)) (BackAddChildren (BackAdd queue (list(ListAdd current '(2 2 3 -2 -1 0 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 2 0 1 -1) 0) (eq? child 17)) (BackAddChildren (BackAdd queue (list(ListAdd current '(2 4 2 -2 0 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 2 1 0 -1) 0) (eq? child 18)) (BackAddChildren (BackAdd queue (list(ListAdd current '(2 3 2 -2 -1 0 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 2 0 1 -1) 0) (eq? child 19)) (BackAddChildren (BackAdd queue (list(ListAdd current '(4 2 2 -2 0 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 2 1 0 -1) 0) (eq? child 20)) (BackAddChildren (BackAdd queue (list(ListAdd current '(3 2 2 -2 -1 0 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 1 1 -1) 0) (eq? child 21)) (BackAddChildren (BackAdd queue (list(ListAdd current '(4 3 2 -1 -1 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 1 1 -1) 0) (eq? child 22)) (BackAddChildren (BackAdd queue (list(ListAdd current '(4 2 3 -1 -1 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 1 1 -1) 0) (eq? child 23)) (BackAddChildren (BackAdd queue (list(ListAdd current '(3 4 2 -1 -1 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 1 1 -1) 0) (eq? child 24)) (BackAddChildren (BackAdd queue (list(ListAdd current '(2 4 3 -1 -1 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 1 1 -1) 0) (eq? child 25)) (BackAddChildren (BackAdd queue (list(ListAdd current '(3 2 3 -1 -1 -1 1)))) current (+ 1 child)))
+    ((and (CapacityRemain? current '(0 0 0 1 1 1 -1) 0) (eq? child 26)) (BackAddChildren (BackAdd queue (list(ListAdd current '(2 3 4 -1 -1 -1 1)))) current (+ 1 child)))
+    ((eq? child 27) queue)
+    (else (BackAddChildren queue current (+ 1 child)))
+    )
+  )
+
+(define initial '(0 0 0 10 20 15 0))
+(define final '(60 48 32 0 0 0 -1))
+
+(define queue '())
+(define allowed 100)
+
+
